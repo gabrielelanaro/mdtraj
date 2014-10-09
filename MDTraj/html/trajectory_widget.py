@@ -91,10 +91,10 @@ class TrajectoryView(DOMWidget):
     secondaryStructure = Enum(['ribbon', 'strand', 'cylinder & plate',
                                'C alpha trace', 'nothing'], 'cylinder & plate',
                                sync=True)
-    surfaceRepresentation = Enum(['Van der Waals surface','solvent excluded surface', 
+    surfaceRepresentation = Enum(['Van der Waals surface','solvent excluded surface',
                     'solvent accessible surface', 'molecular surface',
                     'nothing'], 'nothing', sync=True)
-    
+
     def __init__(self, trajectory, frame=0, **kwargs):
         super(TrajectoryView, self).__init__(**kwargs)
         self.trajectory = trajectory
@@ -109,10 +109,10 @@ class TrajectoryView(DOMWidget):
         self._topology = self._computeTopology()
         self._update_frame_data()
 
-
     def _update_frame_data(self):
+
         self._frameData = {
-            'coordinates' : self.trajectory.xyz[self.frame].tolist(),
+            'coordinates' : encode_numpy(self.trajectory.xyz[self.frame]),
             'secondaryStructure' : self._computeSecondaryStructure()
         }
 
@@ -151,7 +151,7 @@ class TrajectoryView(DOMWidget):
         # TODO(rmcgibbo). Document this schema. It needs to match with what's
         # going on inside iview.loadTopology on the browser side.
 
-        
+
         atoms = {}
 
         # these should be mutually exclusive. you're only in one of
@@ -202,3 +202,17 @@ class TrajectoryView(DOMWidget):
                 'peptideIndices': peptideIndices,
                 'ligandIndices' : ligandIndices,
                 'waterIndices' : waterIndices}
+
+# Utility functions
+
+def encode_numpy(array):
+    '''Encode a numpy array as a base64 encoded string. Returns a dictionary containing the fields:
+
+    - *data*: the base64 string
+    - *type*: the array type
+    - *shape*: the array shape
+
+    '''
+    return {'data' : base64.b64encode(array.data),
+            'type' : self.trajectory.xyz[self.frame].dtype.name,
+            'shape': self.trajectory.xyz[self.frame].shape}

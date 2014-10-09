@@ -12,6 +12,7 @@ require([
     "exporter",
     "filesaver",
     "contextmenu",
+    "base64-arraybuffer",
     // only loaded, not used
     'jqueryui',
     ],
@@ -42,7 +43,7 @@ function($, WidgetManager, iview) {
             this.setupContextMenu(iv);
             this.setupFullScreen(canvas, container);
             this.update();
-            var options = this.getOptions() 
+            var options = this.getOptions()
             this.iv.zoomInto(options);
 
 
@@ -60,18 +61,26 @@ function($, WidgetManager, iview) {
             */
 
             console.log('TrajectoryView.update');
-
             this.iv.loadTopology(this.model.attributes._topology);
-            this.iv.loadCoordinates(this.model.attributes._frameData.coordinates);
+
+            // Transform the coordinates back to javascript TypedArray
+            var buffer = decode(this.model.attributes._frameData.coordinates['data']);
+            var view = new Float32Array(buffer);
+            var coordinates = [];
+            for (var i = 0; i < this.model.attributes._frameData.coordinates['shape'][0]; i++) {
+              coordinates[i] = view.subarray(i * 3, (i + 1)*3);
+            }
+
+            this.iv.loadCoordinates(coordinates);
             this.iv.loadAtomAttributes(this.model.attributes._frameData.secondaryStructure);
-           
-            var options = this.getOptions() 
+
+            var options = this.getOptions()
             this.iv.rebuildScene(options)
             this.iv.render()
 
             return TrajectoryView.__super__.update.apply(this);
         },
-        
+
         setupContextMenu : function(iv) {
             context.init({preventDoubleContext: true});
             var menu = [{header: 'Export as...'},
@@ -81,12 +90,12 @@ function($, WidgetManager, iview) {
                         var data = atob( dataURL.substring( "data:image/png;base64,".length ) ),
                                 asArray = new Uint8Array(data.length);
                         for( var i = 0, len = data.length; i < len; ++i ) {
-                                asArray[i] = data.charCodeAt(i);    
+                                asArray[i] = data.charCodeAt(i);
                         }
                         var blob = new Blob( [ asArray.buffer ], {type: "image/png"} );
                         saveAs(blob,"mol.png")
                     }
-                }, { 
+                }, {
                     text: 'OBJ',
                     action: function () {
                        var obj = '';
@@ -99,7 +108,7 @@ function($, WidgetManager, iview) {
                     }
                 }];
             context.attach('canvas',menu)
-            
+
         },
 
         getOptions : function() {
@@ -112,7 +121,7 @@ function($, WidgetManager, iview) {
                 'secondaryStructure': this.model.attributes.secondaryStructure,
                 'surface': this.model.attributes.surfaceRepresentation
              };
-        
+
              return options
         },
 

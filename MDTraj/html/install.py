@@ -16,6 +16,7 @@ require.config({
         'surface' : '/nbextensions/surface.min',
         'exporter' : '/nbextensions/objexporter',
         'filesaver' : '/nbextensions/filesaver',
+        'base64-arraybuffer': '/nbextensions/base64-arraybuffer',
         'jqueryui': '//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min',
         'contextmenu': '/nbextensions/context',
     },
@@ -48,11 +49,11 @@ def enable_notebook():
 
     This function should be called before using TrajectoryWidget.
     """
-    libs = ['iview.js','surface.min.js','objexporter.js','filesaver.js','context.js']
+    libs = ['iview.js','surface.min.js','objexporter.js','filesaver.js', 'base64-arraybuffer.js', 'context.js']
     fns = [resource_filename('mdtraj', os.path.join('html', 'static', f)) for f in libs]
     install_nbextension(fns, verbose=0)
     display(_REQUIRE_CONFIG)
-    
+
     widgets = ['widget_trajectory.js', 'widget_imagebutton.js']
     for fn in widgets:
         fn = resource_filename('mdtraj', os.path.join('html', 'static', fn))
