@@ -39,11 +39,12 @@ function($, WidgetManager) {
 
 
             var coords = this.model.get('coordinates');
-            
+            var topology = this.model.get('topology');
+
             var buffer = decode(coords['data']);
             var view = new Float32Array(buffer);
  
-            var rep = new PointRepresentation(view);
+            var rep = new PointLineRepresentation(view, topology.bonds);
             mv.addRepresentation(rep);
 
             this.update();
@@ -62,24 +63,15 @@ function($, WidgetManager) {
                 var buffer = decode(coords['data']);
                 var view = new Float32Array(buffer);
 
-                this.pointRepresentation.update(view);
+                this.pointRepresentation.update({'coordinates': view});
                 this.mv.render();
                 console.log('Representation updated');
             }
-            // // Transform the coordinates back to javascript TypedArray
-            // //var buffer = decode(this.model.attributes._frameData.coordinates['data']);
-            // //var view = new Float32Array(buffer);
-            // //var coordinates = [];
-            // //for (var i = 0; i < this.model.attributes._frameData.coordinates['shape'][0]; i++) {
-            // //  coordinates[i] = view.subarray(i * 3, (i + 1)*3);
-            // //}
 
-            // //this.iv.loadCoordinates(coordinates);
-            // //this.iv.loadAtomAttributes(this.model.attributes._frameData.secondaryStructure);
-
-            // //var options = this.getOptions()
-            // //this.iv.rebuildScene(options)
-            // this.mv.render()
+            if (this.model.hasChanged('topology')) {
+                var bonds = this.model.get('topology').bonds;
+                this.pointRepresentation.update({'bonds': bonds});
+            }
 
             return MolecularView.__super__.update.apply(this);
         },

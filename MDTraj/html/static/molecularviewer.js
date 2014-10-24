@@ -90,9 +90,10 @@ MolecularViewer.prototype = {
 };
 
 
-var PointRepresentation = function (coordinates) {
+var PointLineRepresentation = function (coordinates, bonds) {
 	// We take Float32 arrays cuz they're faster
 
+	// That is the points part
 	var geo = new THREE.Geometry();
 	var mat = new THREE.PointCloudMaterial({
       					color: 0xFFFFFF,
@@ -112,22 +113,50 @@ var PointRepresentation = function (coordinates) {
 	this.material = mat;
 
 	this.particleSystem = new THREE.PointCloud(this.geometry, this.material);
+
+
+	// That is the lines part
+   	var geo = new THREE.Geometry();
+   	for (var b = 0; b < bonds.length; b++) {
+   		var start = this.geometry.vertices[bonds[b][0]];
+   		var end = this.geometry.vertices[bonds[b][1]];
+
+   		geo.vertices.push(start);
+   		geo.vertices.push(end);
+   	}
+   	    
+   	var material = new THREE.LineBasicMaterial({
+        color: 0x0000ff
+    });
+
+   	this.lines = new THREE.Line(geo, material, THREE.LinePieces);
+   	this.lines.geometry.dynamic = true;
+
 };
 
 
-PointRepresentation.prototype = {
+PointLineRepresentation.prototype = {
 
-    update: function (coordinates) {
-    	for (var p=0; p < coordinates.length/3; p++) {
-    		this.geometry.vertices[p].x = coordinates[3 * p + 0];
-    		this.geometry.vertices[p].y = coordinates[3 * p + 1];
-    		this.geometry.vertices[p].z = coordinates[3 * p + 2];
-    	}
+    update: function (data) {
 
-    	this.particleSystem.geometry.verticesNeedUpdate = true;
+    	var coordinates = data.coordinates;
+
+    	if (data.coordinates != undefined) {
+    		// There has been no update in coordinates
+	    	for (var p=0; p < coordinates.length/3; p++) {
+	    		this.geometry.vertices[p].x = coordinates[3 * p + 0];
+	    		this.geometry.vertices[p].y = coordinates[3 * p + 1];
+	    		this.geometry.vertices[p].z = coordinates[3 * p + 2];
+	    	}
+
+	    	this.particleSystem.geometry.verticesNeedUpdate = true;
+	    	this.lines.geometry.verticesNeedUpdate = true;
+
+	    }
     },
 
    	addToScene: function(scene) {
    		scene.add(this.particleSystem);
-   	}
+   		scene.add(this.lines);
+   	},
 };

@@ -30,6 +30,7 @@ class MolecularViewer(DOMWidget):
     # automatically to the browser (and changes on the browser side can trigger
     # events on this class too, although we're not using that feature).
     coordinates = Dict(sync=True)
+    topology = Dict(sync=True)
 
     def __init__(self, trajectory, frame=0, **kwargs):
         super(MolecularViewer, self).__init__(**kwargs)
@@ -45,6 +46,17 @@ class MolecularViewer(DOMWidget):
         """Automatically called by the traitlet system when self.trajectory is modified"""
         self.trajectory = new
         self.frame = 0
+
+    def _trajectory_changed(self, name, old, new):
+
+        top = {}
+
+        bondIndices = []
+        for ai, aj in self.trajectory.topology.bonds:
+            bondIndices.append((ai.index, aj.index))
+        
+        top['bonds'] = bondIndices
+        self.topology = top
 
 
 # Utility functions
