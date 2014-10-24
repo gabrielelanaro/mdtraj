@@ -77,7 +77,6 @@ THREE.TrackballControls = function ( object, $el ) {
 	var startEvent = { type: 'start'};
 	var endEvent = { type: 'end'};
 
-
 	// methods
 
 	this.handleResize = function () {
@@ -98,7 +97,6 @@ THREE.TrackballControls = function ( object, $el ) {
 			this.screen.top = box.top + window.pageYOffset - d.clientTop;
 			this.screen.width = box.width;
 			this.screen.height = box.height;
-
 		}
 
 	};

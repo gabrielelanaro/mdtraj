@@ -10,10 +10,10 @@ require([
     'TrackballControls',
     ],
 function($, WidgetManager) {
-    var HEIGHT = 300,
-        WIDTH = 300,
-        HEIGHT_PX = '300px',
-        WIDTH_PX = '300px';
+    var HEIGHT = 600,
+        WIDTH = 600,
+        HEIGHT_PX = '600px',
+        WIDTH_PX = '600px';
 
     var MolecularView = IPython.DOMWidgetView.extend({
 
@@ -50,12 +50,22 @@ function($, WidgetManager) {
             this.update();
             
             this.pointRepresentation = rep;
-            mv.animate();
+            mv.zoomInto(view);
+            mv.renderer.setSize(WIDTH, HEIGHT);
+
+            // That was pretty hard.
+            // The widget is added at THE VERY END, and this event gets called.
+            this.model.on('displayed', function () {
+                mv.animate();
+                mv.controls.handleResize();
+            });
+            mv.render();
         },
 
         update : function () {
 
             console.log('MolecularView.update');
+            mv.controls.handleResize();
             if (this.model.hasChanged('coordinates')) {
 
                 var coords = this.model.get('coordinates');

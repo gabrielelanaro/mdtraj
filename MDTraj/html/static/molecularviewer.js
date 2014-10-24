@@ -43,7 +43,7 @@ var MolecularViewer = function ($el) {
 	this.renderer.setClearColor(background, 1);
 
 	this.scene = new THREE.Scene();
-	this.scene.fog = new THREE.Fog(background, 100, 200);
+	this.scene.fog = new THREE.Fog(background, 10, 200);
 
 	var directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.2);
 	directionalLight.position.set(0.2, 0.2, -1).normalize();
@@ -78,13 +78,56 @@ MolecularViewer.prototype = {
     },
 
     render: function () {
-    	this.controls.handleResize();
+    	if (this.controls.screen.width == 0 || this.controls.screen.height == 0)
+    		this.controls.handleResize();
+
     	this.renderer.render(this.scene, this.camera);
     },
 
     animate: function () {
     	//console.log(this);
+
 		window.requestAnimationFrame(this.animate.bind(this));
+		this.controls.update();
+
+	},
+
+	zoomInto: function (coordinates) {
+		/* TODO: this function may be out of place */
+
+		// Calulate current geometric centre
+		var cur_gc = new THREE.Vector3(0.0, 0.0, 0.0);
+		for (var i = 0; i < coordinates.length/3; i++) {
+			cur_gc.x += coordinates[3*i + 0];
+			cur_gc.y += coordinates[3*i + 1];
+			cur_gc.z += coordinates[3*i + 2];
+		}
+		cur_gc.divideScalar(coordinates.length/3);
+
+		this.controls.target.copy(cur_gc);
+
+
+		// Calculate the bounding sphere
+		var bound = 0;
+		for (var i = 0; i < coordinates.length/3; i++) {
+			var point = new THREE.Vector3( coordinates[3*i + 0],
+									 coordinates[3*i + 1],
+									 coordinates[3*i + 2]);
+			bound = Math.max(bound, point.distanceTo(cur_gc));
+		}
+
+		var fov_topbottom = this.camera.fov*Math.PI/180.0;
+		var dist = (bound + this.camera.near)/Math.tan(fov_topbottom * 0.5);
+        
+        // Calculate distance vector
+        var c = new THREE.Vector3();
+        c.subVectors(this.camera.position, this.controls.target);
+        c.normalize();
+
+        // move camera at a distance
+        c.multiplyScalar(dist);
+        this.camera.position.copy(c);
+		//this.render();
 		this.controls.update();
 	}
 };

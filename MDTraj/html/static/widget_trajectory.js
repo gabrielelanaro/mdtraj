@@ -18,10 +18,10 @@ require([
     ],
 
 function($, WidgetManager, iview) {
-    var HEIGHT = 300,
-        WIDTH = 300,
-        HEIGHT_PX = '300px',
-        WIDTH_PX = '300px';
+    var HEIGHT = 600,
+        WIDTH = 600,
+        HEIGHT_PX = '600px',
+        WIDTH_PX = '600px';
 
     var TrajectoryView = IPython.DOMWidgetView.extend({
         render : function() {
