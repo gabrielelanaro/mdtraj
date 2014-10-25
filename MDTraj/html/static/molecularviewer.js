@@ -127,9 +127,16 @@ MolecularViewer.prototype = {
         // move camera at a distance
         c.multiplyScalar(dist);
         this.camera.position.copy(c);
-		//this.render();
 		this.controls.update();
-	}
+	},
+
+	resize: function (width, height) {
+		this.renderer.setSize(width, height);
+		this.controls.handleResize();
+		this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.render();
+	},
 };
 
 
@@ -144,18 +151,57 @@ var PointLineRepresentation = function (coordinates, bonds) {
       					fog: true,
     				});
 
+	var attributes = {
+
+        color: { type: 'v3', value: [] },
+
+    };
 
 	for (var p = 0; p < coordinates.length/3; p++) {
 		var particle = new THREE.Vector3(coordinates[3 * p + 0],
 										 coordinates[3 * p + 1],
 										 coordinates[3 * p + 2]);
 		geo.vertices.push(particle);
+		attributes.color.value.push(new THREE.Vector3(1.0, 0.0, 0.0));
 	}
 
 	this.geometry = geo;
 	this.material = mat;
 
-	this.particleSystem = new THREE.PointCloud(this.geometry, this.material);
+	var vertex_shader = "\
+		uniform float pointSize;\
+	    attribute vec3 color;\
+	    varying vec3 vColor;\
+    	\
+    	void main() {\
+       		vColor = color;\
+        	vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );\
+        	gl_PointSize = pointSize *( 150.0 / length( mvPosition.xyz ));\
+        	gl_Position = projectionMatrix * mvPosition;\
+    	}\
+    ";
+
+    var fragment_shader = "\
+    	varying vec3 vColor;\
+    	\
+    	void main() {\
+    	if (length(gl_PointCoord*2.0 - 1.0) > 1.0)\
+    		discard;\
+        gl_FragColor = vec4( vColor,  1.0);\
+    }\
+    ";
+
+
+
+    var shaderMaterial = new THREE.ShaderMaterial( {
+        uniforms:       { pointSize: {type: "f", value: 1.0} },
+        attributes:     attributes,
+        vertexShader:   vertex_shader,
+        fragmentShader: fragment_shader,
+        transparent:    false
+    });
+
+	this.particleSystem = new THREE.PointCloud(this.geometry, shaderMaterial);
 
 
 	// That is the lines part

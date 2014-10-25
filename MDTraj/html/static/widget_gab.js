@@ -24,10 +24,9 @@ function($, WidgetManager) {
 
             var container = $('<div/>').css({width: HEIGHT_PX, height: WIDTH_PX})
                 .resizable({
-                    aspectRatio: 1,
+                    aspectRatio: false,
                     resize: function(event, ui) {
-                        mv.renderer.setSize(ui.size.width, ui.size.height);
-                        mv.controls.handleResize();
+                        mv.resize(ui.size.width, ui.size.height);
                     },
                     stop : function(event, ui) {
                         mv.render();
@@ -53,6 +52,7 @@ function($, WidgetManager) {
             mv.zoomInto(view);
             mv.renderer.setSize(WIDTH, HEIGHT);
 
+            this.setupFullScreen(canvas, container);
             // That was pretty hard.
             // The widget is added at THE VERY END, and this event gets called.
             this.model.on('displayed', function () {
@@ -65,7 +65,7 @@ function($, WidgetManager) {
         update : function () {
 
             console.log('MolecularView.update');
-            mv.controls.handleResize();
+            this.mv.controls.handleResize();
             if (this.model.hasChanged('coordinates')) {
 
                 var coords = this.model.get('coordinates');
@@ -85,6 +85,45 @@ function($, WidgetManager) {
 
             return MolecularView.__super__.update.apply(this);
         },
+
+        setupFullScreen : function(canvas, container) {
+            // currently only works in chrome. need other prefixes for firefox
+            var mv = this.mv;
+            canvas.dblclick(function () {
+                if ('webkitCancelFullScreen' in document) {
+                    if (!document.webkitIsFullScreen) {
+                        canvas[0].webkitRequestFullScreen();
+                        mv.resize(screen.width, screen.height);
+                        mv.render();
+                    }
+                } else if ('mozCancelFullScreen' in document) {
+                    if (!document.mozIsFullScreen) {
+                        canvas[0].webkitRequestFullScreen();
+                        mv.resize(screen.width, screen.height);
+                        mv.render();
+                    }
+                }
+            });
+
+            if ('webkitCancelFullScreen' in document) {
+                document.addEventListener("webkitfullscreenchange", function() {
+                        if (!document.webkitIsFullScreen) {
+                            container.width(WIDTH).height(HEIGHT);
+                            canvas.width(WIDTH).height(HEIGHT);
+                            container.trigger('resize');
+                        }
+                    });
+            } else if ('mozCancelFullScreen' in document) {
+                document.addEventListener("mozfullscreenchange", function() {
+                        if (!document.mozIsFullScreen) {
+                            container.css({width: HEIGHT_PX, height: WIDTH_PX});
+                            canvas.css({width: HEIGHT_PX, height: WIDTH_PX});
+                            mv.resize(HEIGHT_PX, WIDTH_PX);
+                        }
+                    });
+            }
+        }
+
     });
 
 
