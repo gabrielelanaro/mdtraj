@@ -140,7 +140,7 @@ MolecularViewer.prototype = {
 };
 
 
-var PointLineRepresentation = function (coordinates, bonds) {
+var PointLineRepresentation = function (coordinates, bonds, colors) {
 	// We take Float32 arrays cuz they're faster
 
 	// That is the points part
@@ -153,16 +153,17 @@ var PointLineRepresentation = function (coordinates, bonds) {
 
 	var attributes = {
 
-        color: { type: 'v3', value: [] },
+        color: { type: 'c', value: [] },
 
     };
+
 
 	for (var p = 0; p < coordinates.length/3; p++) {
 		var particle = new THREE.Vector3(coordinates[3 * p + 0],
 										 coordinates[3 * p + 1],
 										 coordinates[3 * p + 2]);
 		geo.vertices.push(particle);
-		attributes.color.value.push(new THREE.Vector3(1.0, 0.0, 0.0));
+		attributes.color.value.push(new THREE.Color(colors[p]));
 	}
 
 	this.geometry = geo;
@@ -242,6 +243,11 @@ PointLineRepresentation.prototype = {
 	    	this.lines.geometry.verticesNeedUpdate = true;
 
 	    }
+
+	    if (data.point_size != undefined) {
+	    	this.particleSystem.material.uniforms.pointSize.value = data.point_size;
+	    }
+
     },
 
    	addToScene: function(scene) {

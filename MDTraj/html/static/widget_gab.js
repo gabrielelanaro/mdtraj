@@ -43,7 +43,9 @@ function($, WidgetManager) {
             var buffer = decode(coords['data']);
             var view = new Float32Array(buffer);
  
-            var rep = new PointLineRepresentation(view, topology.bonds);
+            var rep = new PointLineRepresentation(view,
+                                                  topology.bonds, 
+                                                  topology.atom_colors);
             mv.addRepresentation(rep);
 
             this.update();
@@ -81,6 +83,11 @@ function($, WidgetManager) {
             if (this.model.hasChanged('topology')) {
                 var bonds = this.model.get('topology').bonds;
                 this.pointRepresentation.update({'bonds': bonds});
+            }
+
+            if (this.model.hasChanged('point_size')) {
+                this.pointRepresentation.update({point_size: this.model.get('point_size')});
+                this.mv.render();
             }
 
             return MolecularView.__super__.update.apply(this);
